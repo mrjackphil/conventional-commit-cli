@@ -12,7 +12,16 @@ type model struct {
 	steps   []step
 	options map[string][]option
 	cursor  int // which to-do list item our cursor is pointing at
-	input   tea.Model
+	input   input.Model
+	result  result
+}
+
+type result struct {
+	name    string
+	scope   string
+	gitmoji string
+	desc    string
+	changes string
 }
 
 type step struct {
@@ -21,8 +30,9 @@ type step struct {
 }
 
 type option struct {
-	text string
-	desc string
+	text  string
+	desc  string
+	value string
 }
 
 func InitModel() tea.Model {
@@ -50,75 +60,346 @@ func InitModel() tea.Model {
 				{text: "revert", desc: "Reverts a previous commit"},
 			},
 			"gitmoji": {
-				{text: "none", desc: "No gitmoji"},
-				{text: "📝", desc: "Writing docs."},
-				{text: "🔥", desc: "Removing code or files."},
-				{text: "🔀", desc: "Merging branches."},
-				{text: "🐛", desc: "Fixing a bug."},
-				{text: "🎨", desc: "Improving structure / format of the code."},
-				{text: "⚡️", desc: "Improving performance."},
-				{text: "🚑", desc: "Critical hotfix."},
-				{text: "✨", desc: "Introducing new features."},
-				{text: "🚀", desc: "Deploying stuff."},
-				{text: "💄", desc: "Updating the UI and style files."},
-				{text: "🎉", desc: "Initial commit."},
-				{text: "✅", desc: "Updating tests."},
-				{text: "🔒", desc: "Fixing security issues."},
-				{text: "🍎", desc: "Fixing something on macOS."},
-				{text: "🐧", desc: "Fixing something on Linux."},
-				{text: "🏁", desc: "Fixing something on Windows."},
-				{text: "🤖", desc: "Fixing something on Android."},
-				{text: "🍏", desc: "Fixing something on iOS."},
-				{text: "🔖", desc: "Releasing / Version tags."},
-				{text: "🚨", desc: "Removing linter warnings."},
-				{text: "🚧", desc: "Work in progress."},
-				{text: "💚", desc: "Fixing CI Build."},
-				{text: "⬇️", desc: "Downgrading dependencies."},
-				{text: "⬆️", desc: "Upgrading dependencies."},
-				{text: "📌", desc: "Pinning dependencies to specific versions."},
-				{text: "📦", desc: "Updating packages."},
-				{text: "📄", desc: "Adding or updating license."},
-				{text: "💥", desc: "Introducing breaking changes."},
-				{text: "🍱", desc: "Adding or updating assets."},
-				{text: "👌", desc: "Updating code due to code review changes."},
-				{text: "♿️", desc: "Improving accessibility."},
-				{text: "💡", desc: "Documenting source code."},
-				{text: "🍻", desc: "Writing code drunkenly."},
-				{text: "💬", desc: "Updating text and literals."},
-				{text: "🗃", desc: "Performing database related changes."},
-				{text: "🔊", desc: "Adding logs."},
-				{text: "🔇", desc: "Removing logs."},
-				{text: "👥", desc: "Adding contributor(s)."},
-				{text: "🚸", desc: "Improving user experience / usability."},
-				{text: "🏗", desc: "Making architectural changes."},
-				{text: "📱", desc: "Working on responsive design."},
-				{text: "🤡", desc: "Mocking things."},
-				{text: "🥚", desc: "Adding an easter egg."},
-				{text: "⚗", desc: "Experimenting new things"},
-				{text: "🔍", desc: "Improving SEO"},
-				{text: "☸️", desc: "Work about Kubernetes"},
-				{text: "🏷️", desc: "Adding or updating types (Flow, TypeScript)"},
-				{text: "🙈", desc: "Adding or updating a .gitignore file"},
-				{text: "📸", desc: "Adding or updating snapshots"},
-				{text: "📦", desc: "Adding or updating a dependency"},
-				{text: "📁", desc: "Adding or updating a file"},
-				{text: "📂", desc: "Adding or updating a directory"},
-				{text: "📅", desc: "Adding or updating a timestamp"},
-			},
+				{
+					text:  "🎨",
+					value: ":art:",
+					desc:  "Improving structure / format of the code.",
+				},
+				{
+					text:  "⚡️",
+					value: ":zap:",
+					desc:  "Improving performance.",
+				},
+				{
+					text:  "🔥",
+					value: ":fire:",
+					desc:  "Removing code or files.",
+				},
+				{
+					text:  "🐛",
+					value: ":bug:",
+					desc:  "Fixing a bug.",
+				},
+				{
+					text:  "🚑",
+					value: ":ambulance:",
+					desc:  "Critical hotfix.",
+				},
+				{
+					text:  "✨",
+					value: ":sparkles:",
+					desc:  "Introducing new features.",
+				},
+				{
+					text:  "📝",
+					value: ":pencil:",
+					desc:  "Writing docs.",
+				},
+				{
+					text:  "🚀",
+					value: ":rocket:",
+					desc:  "Deploying stuff.",
+				},
+				{
+					text:  "💄",
+					value: ":lipstick:",
+					desc:  "Updating the UI and style files.",
+				},
+				{
+					text:  "🎉",
+					value: ":tada:",
+					desc:  "Initial commit.",
+				},
+				{
+					text:  "✅",
+					value: ":white_check_mark:",
+					desc:  "Adding tests.",
+				},
+				{
+					text:  "🔒",
+					value: ":lock:",
+					desc:  "Fixing security issues.",
+				},
+				{
+					text:  "🍎",
+					value: ":apple:",
+					desc:  "Fixing something on macOS.",
+				},
+				{
+					text:  "🐧",
+					value: ":penguin:",
+					desc:  "Fixing something on Linux.",
+				},
+				{
+					text:  "🏁",
+					value: ":checkered_flag:",
+					desc:  "Fixing something on Windows.",
+				},
+				{
+					text:  "🤖",
+					value: ":robot:",
+					desc:  "Fixing something on Android.",
+				},
+				{
+					text:  "🍏",
+					value: ":green_apple:",
+					desc:  "Fixing something on iOS.",
+				},
+				{
+					text:  "🔖",
+					value: ":bookmark:",
+					desc:  "Releasing / Version tags.",
+				},
+				{
+					text:  "🚨",
+					value: ":rotating_light:",
+					desc:  "Removing linter warnings.",
+				},
+				{
+					text:  "🚧",
+					value: ":construction:",
+					desc:  "Work in progress.",
+				},
+				{
+					text:  "💚",
+					value: ":green_heart:",
+					desc:  "Fixing CI Build.",
+				},
+				{
+					text:  "⬇️",
+					value: ":arrow_down:",
+					desc:  "Downgrading dependencies.",
+				},
+				{
+					text:  "⬆️",
+					value: ":arrow_up:",
+					desc:  "Upgrading dependencies.",
+				},
+				{
+					text:  "📌",
+					value: ":pushpin:",
+					desc:  "Pinning dependencies to specific versions.",
+				},
+				{
+					text:  "👷",
+					value: ":construction_worker:",
+					desc:  "Adding CI build system.",
+				},
+				{
+					text:  "📈",
+					value: ":chart_with_upwards_trend:",
+					desc:  "Adding analytics or tracking code.",
+				},
+				{
+					text:  "♻️",
+					value: ":recycle:",
+					desc:  "Refactoring code.",
+				},
+				{
+					text:  "🐳",
+					value: ":whale:",
+					desc:  "Work about Docker.",
+				},
+				{
+					text:  "➕",
+					value: ":heavy_plus_sign:",
+					desc:  "Adding a dependency.",
+				},
+				{
+					text:  "➖",
+					value: ":heavy_minus_sign:",
+					desc:  "Removing a dependency.",
+				},
+				{
+					text:  "🔧",
+					value: ":wrench:",
+					desc:  "Changing configuration files.",
+				},
+				{
+					text:  "🌐",
+					value: ":globe_with_meridians:",
+					desc:  "Internationalization and localization.",
+				},
+				{
+					text:  "✏️",
+					value: ":pencil2:",
+					desc:  "Fixing typos.",
+				},
+				{
+					text:  "💩",
+					value: ":poop:",
+					desc:  "Writing bad code that needs to be improved.",
+				},
+				{
+					text:  "⏪",
+					value: ":rewind:",
+					desc:  "Reverting changes.",
+				},
+				{
+					text:  "🔀",
+					value: ":twisted_rightwards_arrows:",
+					desc:  "Merging branches.",
+				},
+				{
+					text:  "📦",
+					value: ":package:",
+					desc:  "Updating compiled files or packages.",
+				},
+				{
+					text:  "👽",
+					value: ":alien:",
+					desc:  "Updating code due to external API changes.",
+				},
+				{
+					text:  "🚚",
+					value: ":truck:",
+					desc:  "Moving or renaming files.",
+				},
+				{
+					text:  "📄",
+					value: ":page_facing_up:",
+					desc:  "Adding or updating license.",
+				},
+				{
+					text:  "💥",
+					value: ":boom:",
+					desc:  "Introducing breaking changes.",
+				},
+				{
+					text:  "🍱",
+					value: ":bento:",
+					desc:  "Adding or updating assets.",
+				},
+				{
+					text:  "👌",
+					value: ":ok_hand:",
+					desc:  "Updating code due to code review changes.",
+				},
+				{
+					text:  "♿️",
+					value: ":wheelchair:",
+					desc:  "Improving accessibility.",
+				},
+				{
+					text:  "💡",
+					value: ":bulb:",
+					desc:  "Documenting source code.",
+				},
+				{
+					text:  "🍻",
+					value: ":beers:",
+					desc:  "Writing code drunkenly.",
+				},
+				{
+					text:  "💬",
+					value: ":speech_balloon:",
+					desc:  "Updating text and literals.",
+				},
+				{
+					text:  "🗃",
+					value: ":card_file_box:",
+					desc:  "Performing database related changes.",
+				},
+				{
+					text:  "🔊",
+					value: ":loud_sound:",
+					desc:  "Adding logs.",
+				},
+				{
+					text:  "🔇",
+					value: ":mute:",
+					desc:  "Removing logs.",
+				},
+				{
+					text:  "👥",
+					value: ":busts_in_silhouette:",
+					desc:  "Adding contributor(s).",
+				},
+				{
+					text:  "🚸",
+					value: ":children_crossing:",
+					desc:  "Improving user experience / usability.",
+				},
+				{
+					text:  "🏗",
+					value: ":building_construction:",
+					desc:  "Making architectural changes.",
+				},
+				{
+					text:  "📱",
+					value: ":iphone:",
+					desc:  "Working on responsive design.",
+				},
+				{
+					text:  "🤡",
+					value: ":clown_face:",
+					desc:  "Mocking things.",
+				},
+				{
+					text:  "🥚",
+					value: ":egg:",
+					desc:  "Adding an easter egg.",
+				},
+				{
+					text:  "🙈",
+					value: ":see_no_evil:",
+					desc:  "Adding or updating a .gitignore file.",
+				},
+				{
+					text:  "📸",
+					value: ":camera_flash:",
+					desc:  "Adding or updating snapshots.",
+				},
+				{
+					text:  "⚗",
+					value: ":alembic:",
+					desc:  "Experimenting new things.",
+				},
+				{
+					text:  "🔍",
+					value: ":mag:",
+					desc:  "Improving SEO.",
+				},
+				{
+					text:  "☸️",
+					value: ":wheel_of_dharma:",
+					desc:  "Work about Kubernetes.",
+				},
+				{
+					text:  "🏷️",
+					value: ":label:",
+					desc:  "Adding or updating types (Flow, TypeScript).",
+				},
+				{
+					text:  "🌱",
+					value: ":seedling:",
+					desc:  "Adding or updating seed files.",
+				},
+				{
+					text:  "🚩",
+					value: ":triangular_flag_on_post:",
+					desc:  "Adding, updating, or removing feature flags.",
+				},
+				{
+					text:  "💫",
+					value: ":dizzy:",
+					desc:  "Adding or updating animations and transitions.",
+				}},
 		},
 		input: input.Init(),
 	}
 }
 
 func (m model) Init() tea.Cmd {
+	InitModel()
 	return nil
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
-	if m.currentStep().name != "gitmoji" && m.currentStep().name != "feat" {
-		m.input, cmd = m.input.Update(msg)
+	if m.step > len(m.steps)-1 {
+		return m, tea.Quit
 	}
 
 	switch msg := msg.(type) {
@@ -127,8 +408,23 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl-c", "q", "esc": // quit
 			return m, tea.Quit
 		case "enter":
+			switch m.steps[m.step].name {
+			case "type":
+				m.result.name = m.currentOptions()[m.cursor].text
+			case "scope":
+				m.result.scope = m.input.GetText()
+			case "gitmoji":
+				m.result.gitmoji = m.currentOptions()[m.cursor].value
+			case "description":
+				m.result.desc = m.input.GetText()
+			case "breaking changes":
+				m.result.changes = m.input.GetText()
+			}
+
 			m.cursor = 0
-			m.step++
+			if m.step < len(m.steps) {
+				m.step++
+			}
 		case "up", "k":
 			if m.cursor > 0 {
 				m.cursor--
@@ -140,6 +436,16 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 	}
 
+	step := m.currentStep()
+
+	if step == nil {
+		return m, cmd
+	}
+
+	if step.name != "gitmoji" && step.name != "type" {
+		m.input, cmd = m.input.Update(msg)
+	}
+
 	return m, cmd
 }
 
@@ -147,7 +453,8 @@ func (m model) View() string {
 	s := "MrJackphil's git commitzen:\n\n"
 
 	if (m.step < 0) || (m.step >= len(m.steps)) {
-		s += "End of the job.\nPress Ctrl-C to quit."
+		s += fmt.Sprintf("%s(%s): %s %s", m.result.name, m.result.scope, m.result.gitmoji, m.result.desc)
+		s += "\n\n"
 		return s
 	}
 
@@ -198,6 +505,7 @@ func (m model) View() string {
 		}
 	}
 
+	// Add input view content
 	if step.name != "type" && step.name != "gitmoji" {
 		s += "\n" + m.input.View()
 	}
