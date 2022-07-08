@@ -474,17 +474,20 @@ func (m model) View() string {
 	}
 
 	// Setup viewport boundaries
-	boundary := 15
-	toffset := m.cursor - boundary
-	boffset := m.cursor + boundary
+	boundary := 5
+	t := m.cursor - boundary
+	b := m.cursor + boundary
 
-	if toffset < 0 {
-		toffset = 0
+	if t < 0 {
+		b += -t
 	}
 
-	if boffset > len(options) {
-		boffset = len(options)
+	if b > len(options) {
+		t -= b - len(options)
 	}
+
+	t = clamp(t, 0, len(options))
+	b = clamp(b, 0, len(options))
 
 	// Print the options
 	for feat, option := range options {
@@ -501,12 +504,9 @@ func (m model) View() string {
 		}
 
 		// Add padding to the option
-		space := longest - len(option.text)
-		if space < 0 {
-			space = 0
-		}
+		space := max(0, longest-len(option.text))
 
-		if feat >= toffset && feat <= boffset {
+		if feat >= t && feat <= b {
 			s += fmt.Sprintf("\n %s %s%s %s", cursor, option.text, strings.Repeat(" ", space), desc)
 		}
 	}
@@ -529,4 +529,25 @@ func (m model) currentStep() *step {
 
 func (m model) currentOptions() []option {
 	return m.options[m.currentStep().name]
+}
+
+func clamp(v, low, high int) int {
+	if high < low {
+		low, high = high, low
+	}
+	return min(high, max(low, v))
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func max(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
