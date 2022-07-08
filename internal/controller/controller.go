@@ -488,13 +488,19 @@ func (m model) View() string {
 
 	// Print the options
 	for feat, option := range options {
-		cursor := current(m.cursor, feat)
-		desc := option.desc
+		// Print the selected option
+		cursor := " "
+		if m.cursor == feat {
+			cursor = ">"
+		}
 
+		// Print description
+		desc := option.desc
 		if desc != "" {
 			desc = "- " + desc
 		}
 
+		// Add padding to the option
 		space := longest - len(option.text)
 		if space < 0 {
 			space = 0
@@ -523,11 +529,4 @@ func (m model) currentStep() *step {
 
 func (m model) currentOptions() []option {
 	return m.options[m.currentStep().name]
-}
-
-func current(c int, f int) string {
-	if c == f {
-		return "*"
-	}
-	return " "
 }
