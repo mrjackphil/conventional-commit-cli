@@ -554,7 +554,7 @@ func (m model) getResult() string {
 		changes = "\n\nBREAKING CHANGE: " + m.result.changes
 	}
 
-	return fmt.Sprintf("%s(%s): %s %s%s", m.result.name, m.result.scope, m.result.gitmoji, m.result.desc, changes)
+	return fmt.Sprintf("%s(%s): %s %s %s%s", m.result.name, m.result.scope, m.result.gitmoji, m.result.summary, m.result.desc, changes)
 }
 
 func clamp(v, low, high int) int {
