@@ -25,7 +25,7 @@ type option struct {
 	desc string
 }
 
-func InitModel() model {
+func InitModel() tea.Model {
 	return model{
 		step: 0,
 		steps: []step{
