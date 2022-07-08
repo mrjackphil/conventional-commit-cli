@@ -503,7 +503,7 @@ func (m model) View() string {
 			desc = "- " + desc
 		}
 
-		// Add padding to the option
+		// Add space between option and description
 		space := max(0, longest-len(option.text))
 
 		if feat >= t && feat <= b {
