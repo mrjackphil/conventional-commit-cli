@@ -11,7 +11,7 @@ type model struct {
 	step    int
 	steps   []step
 	options map[string][]option
-	cursor  int // which to-do list item our cursor is pointing at
+	cursor  int
 	input   input.Model
 	result  result
 }
@@ -20,6 +20,7 @@ type result struct {
 	name    string
 	scope   string
 	gitmoji string
+	summary string
 	desc    string
 	changes string
 }
@@ -40,9 +41,10 @@ func InitModel() tea.Model {
 		step: 0,
 		steps: []step{
 			{name: "type", msg: "Choose type of change:"},
-			{name: "scope", msg: "Choose scope of change:"},
+			{name: "scope", msg: "Enter scope of change:"},
 			{name: "gitmoji", msg: "Choose gitmoji:"},
-			{name: "description", msg: "Enter description:"},
+			{name: "summary", msg: "Enter short summary:"},
+			{name: "description", msg: "Enter full description:"},
 			{name: "breaking changes", msg: "Enter breaking changes:"},
 		},
 		options: map[string][]option{
@@ -453,7 +455,7 @@ func (m model) View() string {
 	s := "MrJackphil's git commitzen:\n\n"
 
 	if (m.step < 0) || (m.step >= len(m.steps)) {
-		s += fmt.Sprintf("%s(%s): %s %s", m.result.name, m.result.scope, m.result.gitmoji, m.result.desc)
+		s += m.getResult()
 		s += "\n\n"
 		return s
 	}
@@ -529,6 +531,15 @@ func (m model) currentStep() *step {
 
 func (m model) currentOptions() []option {
 	return m.options[m.currentStep().name]
+}
+
+func (m model) getResult() string {
+	changes := m.result.changes
+	if m.result.changes != "" {
+		changes = "\n\nBREAKING CHANGE: " + m.result.changes
+	}
+
+	return fmt.Sprintf("%s(%s): %s %s%s", m.result.name, m.result.scope, m.result.gitmoji, m.result.desc, changes)
 }
 
 func clamp(v, low, high int) int {
