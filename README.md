@@ -1,3 +1,5 @@
-Conventional emoji in shell
+# Conventional Commit CLI
 
-Help with conventional emoji in shell
+Utility to commit to a git repository with a consistent commit message format.
+
+Uses the [conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/) format.
