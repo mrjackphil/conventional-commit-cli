@@ -430,6 +430,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.result.scope = m.input.GetText()
 			case "gitmoji":
 				m.result.gitmoji = m.currentOptions()[m.cursor].value
+			case "summary":
+				m.result.summary = m.input.GetText()
 			case "description":
 				m.result.desc = m.input.GetText()
 			case "breaking changes":
