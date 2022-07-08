@@ -4,6 +4,7 @@ import (
 	"conventional-emoji-in-shell/internal/input"
 	"fmt"
 	tea "github.com/charmbracelet/bubbletea"
+	"os/exec"
 	"strings"
 )
 
@@ -14,6 +15,7 @@ type model struct {
 	cursor  int
 	input   input.Model
 	result  result
+	done    bool
 }
 
 type result struct {
@@ -35,6 +37,8 @@ type option struct {
 	desc  string
 	value string
 }
+
+type Err struct{ error error }
 
 func InitModel() tea.Model {
 	return model{
@@ -400,8 +404,17 @@ func (m model) Init() tea.Cmd {
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
-	if m.step > len(m.steps)-1 {
+	if m.done {
 		return m, tea.Quit
+	}
+
+	if m.step > len(m.steps)-1 {
+		cmd := exec.Command("git", "commit", "-a", "-m", m.getResult())
+		proc := tea.ExecProcess(cmd, func(err error) tea.Msg {
+			return Err{error: err}
+		})
+		m.done = true
+		return m, proc
 	}
 
 	switch msg := msg.(type) {
