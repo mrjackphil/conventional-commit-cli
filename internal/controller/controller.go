@@ -433,7 +433,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "summary":
 				m.result.summary = m.input.GetText()
 			case "description":
-				m.result.desc = m.input.GetText()
+				m.result.desc = "\n\n" + m.input.GetText()
 			case "breaking changes":
 				m.result.changes = m.input.GetText()
 			}
