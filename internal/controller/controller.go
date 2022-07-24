@@ -409,7 +409,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	if m.step > len(m.steps)-1 {
-		cmd := exec.Command("git", "commit", "-a", "-m", m.getResult())
+		cmd := exec.Command("git", "commit", "--interactive", "-m", m.getResult())
 		proc := tea.ExecProcess(cmd, func(err error) tea.Msg {
 			return Err{error: err}
 		})
