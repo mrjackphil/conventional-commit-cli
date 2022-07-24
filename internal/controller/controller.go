@@ -453,8 +453,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.step < len(m.steps) {
 				m.step++
 			}
-
-			return m, nil
 		case "up", "ctrl-k":
 			if m.cursor > 0 {
 				m.cursor--
