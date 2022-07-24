@@ -586,7 +586,7 @@ func (m model) getResult() string {
 	}
 
 	if m.result.gitmoji != "" {
-		m.result.gitmoji = " " + m.result.gitmoji
+		m.result.gitmoji = m.result.gitmoji + " "
 	}
 
 	return fmt.Sprintf("%s(%s): %s%s%s%s", m.result.name, m.result.scope, m.result.gitmoji, m.result.summary, m.result.desc, changes)
