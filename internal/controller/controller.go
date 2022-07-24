@@ -73,6 +73,11 @@ func InitModel() tea.Model {
 			},
 			"gitmoji": {
 				{
+					text:  "none",
+					desc:  "No gitmoji",
+					value: "",
+				},
+				{
 					text:  "🎨",
 					value: ":art:",
 					desc:  "Improving structure / format of the code.",
@@ -449,7 +454,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.result.changes = m.input.GetText()
 			}
 
-			m.reset()
+			m.cursor = 0
+			m.fuzzy = ""
 			if m.step < len(m.steps) {
 				m.step++
 			}
@@ -573,17 +579,17 @@ func (m model) currentOptions() []option {
 }
 
 func (m model) getResult() string {
+	// Additional formatting for the result
 	changes := m.result.changes
 	if m.result.changes != "" {
 		changes = "\n\nBREAKING CHANGE: " + m.result.changes
 	}
 
-	return fmt.Sprintf("%s(%s): %s %s %s%s", m.result.name, m.result.scope, m.result.gitmoji, m.result.summary, m.result.desc, changes)
-}
+	if m.result.gitmoji != "" {
+		m.result.gitmoji = " " + m.result.gitmoji
+	}
 
-func (m model) reset() {
-	m.cursor = 0
-	m.fuzzy = ""
+	return fmt.Sprintf("%s(%s): %s%s%s%s", m.result.name, m.result.scope, m.result.gitmoji, m.result.summary, m.result.desc, changes)
 }
 
 func clamp(v, low, high int) int {
