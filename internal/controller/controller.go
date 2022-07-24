@@ -16,10 +16,11 @@ type model struct {
 	step     int
 	steps    []step
 	options  map[string][]option
+	foptions map[string][]option // filtered options
+	fuzzy    string              // Search options and store the result of the search in foptions
 	cursor   int
 	input    input.Model
 	result   result
-	fuzzy    string // Store filter string used to search options
 	viewport size
 	done     bool
 }
@@ -441,11 +442,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			switch m.steps[m.step].name {
 			case "type":
-				m.result.name = m.currentOptions()[m.cursor].text
+				m.result.name = m.currentFuzzyOptions()[m.cursor].text
 			case "scope":
 				m.result.scope = m.input.GetText()
 			case "gitmoji":
-				m.result.gitmoji = m.currentOptions()[m.cursor].value
+				m.result.gitmoji = m.currentFuzzyOptions()[m.cursor].value
 			case "summary":
 				m.result.summary = m.input.GetText()
 			case "description":
@@ -465,7 +466,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		case "down", "ctrl-j":
-			if m.cursor < len(m.currentOptions())-1 {
+			if m.cursor < len(m.currentFuzzyOptions())-1 {
 				m.cursor++
 			}
 			return m, nil
@@ -473,11 +474,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		switch msg.Type {
 		case tea.KeyRunes, tea.KeySpace:
-			if m.steps[m.step].name == "feat" || m.steps[m.step].name == "gitmoji" {
+			if m.steps[m.step].name == "type" || m.steps[m.step].name == "gitmoji" {
 				m.fuzzy += msg.String()
 			}
 		case tea.KeyBackspace:
-			if m.steps[m.step].name == "feat" || m.steps[m.step].name == "gitmoji" {
+			if m.fuzzy != "" {
 				m.fuzzy = m.fuzzy[:len(m.fuzzy)-1]
 			}
 		}
@@ -497,7 +498,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	s := "MrJackphil's git commitzen:\n\n"
+	s := "MrJackphil's git commitzen:\n"
+	s += "Filter: " + m.fuzzy + "\n"
+	s += "=====================================================\n"
 
 	if (m.step < 0) || (m.step >= len(m.steps)) {
 		s += m.getResult()
@@ -509,7 +512,7 @@ func (m model) View() string {
 
 	s += step.msg
 
-	options := m.currentOptions()
+	options := m.currentFuzzyOptions()
 
 	// Max length of the option
 	longest := 0
@@ -521,7 +524,7 @@ func (m model) View() string {
 	}
 
 	// Setup viewport boundaries
-	boundary := m.viewport.height/2 - 2
+	boundary := m.viewport.height/2 - 3
 	t := m.cursor - boundary
 	b := m.cursor + boundary
 
@@ -574,8 +577,18 @@ func (m model) currentStep() *step {
 	return &m.steps[m.step]
 }
 
-func (m model) currentOptions() []option {
-	return m.options[m.currentStep().name]
+func (m model) currentFuzzyOptions() []option {
+	var result []option
+
+	curOptions := m.options[m.steps[m.step].name]
+
+	for _, opt := range curOptions {
+		if strings.Contains(opt.text, m.fuzzy) || strings.Contains(opt.desc, m.fuzzy) {
+			result = append(result, opt)
+		}
+	}
+
+	return result
 }
 
 func (m model) getResult() string {
