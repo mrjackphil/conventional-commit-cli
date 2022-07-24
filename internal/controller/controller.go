@@ -583,7 +583,10 @@ func (m model) currentFuzzyOptions() []option {
 	curOptions := m.options[m.steps[m.step].name]
 
 	for _, opt := range curOptions {
-		if strings.Contains(opt.text, m.fuzzy) || strings.Contains(opt.desc, m.fuzzy) {
+		t := strings.ToLower(opt.text)
+		d := strings.ToLower(opt.desc)
+		f := strings.ToLower(m.fuzzy)
+		if strings.Contains(t, f) || strings.Contains(d, f) {
 			result = append(result, opt)
 		}
 	}
