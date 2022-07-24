@@ -8,14 +8,20 @@ import (
 	"strings"
 )
 
+type size struct {
+	width, height int
+}
+
 type model struct {
-	step    int
-	steps   []step
-	options map[string][]option
-	cursor  int
-	input   input.Model
-	result  result
-	done    bool
+	step     int
+	steps    []step
+	options  map[string][]option
+	cursor   int
+	input    input.Model
+	result   result
+	fuzzy    string // Store filter string used to search options
+	viewport size
+	done     bool
 }
 
 type result struct {
@@ -418,6 +424,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 
 	switch msg := msg.(type) {
+
+	case tea.WindowSizeMsg:
+		m.viewport.height = msg.Height
+		m.viewport.width = msg.Width
+
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl-c", "q", "esc": // quit
@@ -438,17 +449,32 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.result.changes = m.input.GetText()
 			}
 
-			m.cursor = 0
+			m.reset()
 			if m.step < len(m.steps) {
 				m.step++
 			}
-		case "up", "k":
+
+			return m, nil
+		case "up", "ctrl-k":
 			if m.cursor > 0 {
 				m.cursor--
 			}
-		case "down", "j":
+			return m, nil
+		case "down", "ctrl-j":
 			if m.cursor < len(m.currentOptions())-1 {
 				m.cursor++
+			}
+			return m, nil
+		}
+
+		switch msg.Type {
+		case tea.KeyRunes, tea.KeySpace:
+			if m.steps[m.step].name == "feat" || m.steps[m.step].name == "gitmoji" {
+				m.fuzzy += msg.String()
+			}
+		case tea.KeyBackspace:
+			if m.steps[m.step].name == "feat" || m.steps[m.step].name == "gitmoji" {
+				m.fuzzy = m.fuzzy[:len(m.fuzzy)-1]
 			}
 		}
 	}
@@ -491,7 +517,7 @@ func (m model) View() string {
 	}
 
 	// Setup viewport boundaries
-	boundary := 5
+	boundary := m.viewport.height/2 - 2
 	t := m.cursor - boundary
 	b := m.cursor + boundary
 
@@ -555,6 +581,11 @@ func (m model) getResult() string {
 	}
 
 	return fmt.Sprintf("%s(%s): %s %s %s%s", m.result.name, m.result.scope, m.result.gitmoji, m.result.summary, m.result.desc, changes)
+}
+
+func (m model) reset() {
+	m.cursor = 0
+	m.fuzzy = ""
 }
 
 func clamp(v, low, high int) int {
