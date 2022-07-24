@@ -10,7 +10,8 @@ Uses the [conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/) 
 - [ ] Extract previously used commits and use them as a template
 - [ ] Custom git attributes (--interactive, -a and others)
 
-## Knowns bugs
+## Known bugs
 - [ ] Doesn't render right when run in small window
 - [ ] Descriptions for icons doesn't align right
 - [ ] Missing icons
+- [ ] No empty emoji option
